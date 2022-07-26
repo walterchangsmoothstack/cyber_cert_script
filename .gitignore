@@ -1,1 +1,4 @@
-config.cfg
+*config.cfg
+conf.cfg
+AccentureFederalServices.cer
+AccentureFederalServices.pfx
