@@ -7,7 +7,7 @@ logging.getLogger().setLevel(logging.ERROR)
 
 
 def main():
-    print('Python Graph Tutorial\n')
+    print('Parsing Cybersecurity Certificates\n')
 
     # Load settings
     config = configparser.ConfigParser()
@@ -88,7 +88,7 @@ def main():
                 logging.error("Something went wrong while retrieving the files in the folder.")
                 print(e)
             with open(f, mode='rb') as file: # Read binary
-                fileContent = file.read()
+                fileContent = file.read() # Change to write content directly instead of storing in variable
             response = graph.upload_file(drive_id, variables['DRIVE_PATH'], filename, fileContent)
 
 

@@ -1,10 +1,9 @@
-from fileinput import filename
-import json
-from configparser import SectionProxy
-import site
-from wsgiref.util import request_uri
 from azure.identity import DeviceCodeCredential, ClientSecretCredential, CertificateCredential
+from configparser import SectionProxy
+from fileinput import filename
 from msgraph.core import GraphClient
+from platformdirs import user_cache_dir
+from wsgiref.util import request_uri
 
 
 
@@ -21,8 +20,8 @@ class Graph:
         client_id = self.settings['clientId']
         tenant_id = self.settings['authTenant']
         graph_scopes = self.settings['graphUserScopes'].split(' ')
-        client_cert_path = "PATH_TO_CERTIFICATE_HERE"
-        password = 'CERTIFICATE_PASSWORD_HERE'
+        # client_cert_path = "PATH_TO_CERTIFICATE_HERE"
+        # password = 'CERTIFICATE_PASSWORD_HERE'
     
         self.device_code_credential = DeviceCodeCredential(client_id, tenant_id = tenant_id)
         self.user_client = GraphClient(credential=self.device_code_credential, scopes=graph_scopes)
@@ -84,24 +83,40 @@ class Graph:
         
         response = self.user_client.get(request_url)
         return response
-    
-    # Make a request to get a file using the drive_id and the file_id
-    def get_file(self, drive_id, file_id):
-        request_url = f"/drives/{drive_id}/items/{file_id}"
-        response = self.user_client.get(request_url)
-        print(response.json())
-        return response
 
-    # Make a request to get the user token
-    def get_user_token(self):
-        graph_scopes = self.settings['graphUserScopes']
-        access_token = self.device_code_credential.get_token(graph_scopes)
-        return access_token.token
+    def get_folders(self):
+        endpoint = '/me/mailFolders'
+        select = 'displayName,id'
+        search = 'hasAttachments:true'
+        # request_url = f'{endpoint}?$search={search}&$select={select}'
+        request_url = f'{endpoint}?$select={select}'
 
-    
-    
-        
-    
+        folder_response = self.user_client.get(request_url)
+        return folder_response.json()
 
+    def get_inbox(self, folder_id: str):
+        endpoint = f'/me/mailFolders/{folder_id}/messages'
+        select = 'from,isRead,receivedDateTime,subject,hasAttachments,id'
+        top = 25
+        order_by = 'receivedDateTime DESC'
+        request_url = f'{endpoint}?$select={select}&$top={top}&$orderBy={order_by}'
+
+        inbox_response = self.user_client.get(request_url)
+        return inbox_response.json()
+
+    def get_attachments(self, message_id: str):
+        endpoint = f'/me/messages/{message_id}/attachments'
+        select = 'id,name,contentType'
+        top = 1
+        request_url = f'{endpoint}?$select={select}'
+
+        attachment_response = self.user_client.get(request_url)
+        return attachment_response.json()
+
+    def download_attachments(self, message_id: str, attachment_id: str):
+        endpoint = f'/me/messages/{message_id}/attachments/{attachment_id}'
+        request_url = f'{endpoint}/$value'
+
+        attachment_response = self.user_client.get(request_url)
+        return attachment_response
     
-        
