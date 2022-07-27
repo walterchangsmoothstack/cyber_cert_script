@@ -85,11 +85,18 @@ class Graph:
         response = self.user_client.get(request_url)
         return response
     
+    # Make a request to get a file using the drive_id and the file_id
     def get_file(self, drive_id, file_id):
         request_url = f"/drives/{drive_id}/items/{file_id}"
         response = self.user_client.get(request_url)
         print(response.json())
         return response
+
+    # Make a request to get the user token
+    def get_user_token(self):
+        graph_scopes = self.settings['graphUserScopes']
+        access_token = self.device_code_credential.get_token(graph_scopes)
+        return access_token.token
 
     
     

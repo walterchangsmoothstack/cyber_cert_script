@@ -19,7 +19,6 @@ def main():
 
     graph: Graph = Graph(azure_settings)
 
-
     # Call the function to get a site by its name. 
     response = graph.get_site(variables['SITE_NAME'])
 
@@ -57,6 +56,7 @@ def main():
     response = graph.list_files(drive_id, variables['DRIVE_PATH'])
     json_data = response.json() if response and response.status_code == 200 else None
     list_of_files = json_data['value'] if json_data and 'value' in json_data else None
+
 
 
     # Go through each file (certificate) in the folder PATH_OF_DIRECTORY variable
