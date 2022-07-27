@@ -35,7 +35,7 @@ class Graph:
         #------------------------------------------------
         # Use app-only authentication with a clientSecret
         #------------------------------------------------
-        
+
         # client_secret = self.settings['clientSecret']
         # self.client_credential = ClientSecretCredential(tenant_id, client_id, client_secret)
         # self.app_client = GraphClient(credential=self.client_credential,
@@ -74,17 +74,23 @@ class Graph:
         return response
 
     # Make a request to get a file with the filename passed in
-    def get_file(self, site_id, drive_id, filename):
+    def list_files(self, drive_id, folder_path):
 
         # Use the query endpoint to search for the filename
-        request_url = f"/drives/{drive_id}/root:/Documents:/children"
-
-        print(request_url)
+        # request_url = f"/drives/{drive_id}/root:/cyber_security_certs:/children"
+        request_url = f'/drives/{drive_id}/root:/{folder_path}:/children'
+        # request_url = f"/drives/{drive_id}/root:/cyber_security_certs/search(q='{filename}')"
+        # request_url = f"/drives/{drive_id}/root:/children/?$search=webUrl:https://smoothstack0.sharepoint.com/sites/Test/Shared%20Documents/cyber_security_certs/hello.txt"
+        
         response = self.user_client.get(request_url)
-        for item in response.json()['value']:
-            print(item)
-            print("---------------------------------------------------------")
         return response
+    
+    def get_file(self, drive_id, file_id):
+        request_url = f"/drives/{drive_id}/items/{file_id}"
+        response = self.user_client.get(request_url)
+        print(response.json())
+        return response
+
     
     
         
