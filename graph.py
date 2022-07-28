@@ -66,7 +66,6 @@ class Graph:
         
         # Upload the content using this path
         request_url = f"/drives/{drive_id}/root:/{drive_path}/{filename}:/content"
-        
         # Set the header to accept a binary value
         headers = {'Content-type': 'application/binary'}
         response = self.user_client.put(request_url, headers=headers, data=fileContent)
