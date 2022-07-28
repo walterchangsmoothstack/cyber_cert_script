@@ -1,4 +1,4 @@
 *config.cfg
 conf.cfg
-AccentureFederalServices.cer
-AccentureFederalServices.pfx
+AppOnlyCertificate.cer
+AppOnlyCertificate.pfx
