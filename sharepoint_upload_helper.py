@@ -1,4 +1,4 @@
-import os, logging, re, configparser
+import logging, configparser
 from graph import Graph
 
 logging.basicConfig()
@@ -56,19 +56,22 @@ def list_files_in_folder(graph, drive_id, folder_path):
 def upload_file(graph, drive_id, folder_path, filename, fileContent, list_of_filenames):
     i = 0
     count = 1
+    # Save just the filename without the extension or count for use later to handle double/triple digit counts
+    tmp_filename = filename[:-4]
     # Put the count in between the filename and extension
-    filename = f'{filename[:-4]}({count}).pdf'
+    filename = f'{tmp_filename}({count}).pdf'
     while i in range(0, len(list_of_filenames)):
         if list_of_filenames[i] == filename:
             logging.info(f"File already exists. Appending ({count}) to the filename")
             count += 1
-            filename = f'{filename[:-4]}({count}).pdf'
+            filename = f'{tmp_filename}({count}).pdf'
             # Resetting count to 0
             i = 0
         else:
-            i +=1 
+            i +=1
     response = graph.upload_file(drive_id, folder_path, filename, fileContent)
     return response
+    
 
 
 
@@ -77,7 +80,7 @@ def upload_file(graph, drive_id, folder_path, filename, fileContent, list_of_fil
 # ----------------------------------------------------
 
 # config = configparser.ConfigParser()
-# config.read(['config.cfg', 'config.dev.cfg'])
+# config.read(['conf.cfg', 'config.dev.cfg'])
 # azure_settings = config['azure']
 
 # # Load environment variables from the config.cfg file
@@ -91,4 +94,4 @@ def upload_file(graph, drive_id, folder_path, filename, fileContent, list_of_fil
 
 # with open(f"{variables['PATH_OF_DIRECTORY']}Cyber_Security_Certificate.pdf", mode='rb') as file: # Read binary
 #     fileContent = file.read()
-# upload_file(graph, variables['DRIVE_PATH'], drive_id, "Cyber_Security_Certificate.pdf", fileContent, list_of_file_names)
+# upload_file(graph, drive_id, variables['DRIVE_PATH'], "Cyber_Security_Certificate.pdf", fileContent, list_of_file_names)

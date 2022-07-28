@@ -67,7 +67,6 @@ class Graph:
         
         # Upload the content using this path
         request_url = f"/drives/{drive_id}/root:/{drive_path}/{filename}:/content"
-        
         # Set the header to accept a binary value
         headers = {'Content-type': 'application/binary'}
         response = self.user_client.put(request_url, headers=headers, data=fileContent)
@@ -89,7 +88,6 @@ class Graph:
     def get_file(self, drive_id, file_id):
         request_url = f"/drives/{drive_id}/items/{file_id}"
         response = self.user_client.get(request_url)
-        print(response.json())
         return response
 
     # Make a request to get the user token
