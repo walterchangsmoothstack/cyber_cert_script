@@ -40,6 +40,12 @@ class Graph:
         # self.app_client = GraphClient(credential=self.client_credential,
         #                             scopes=['https://graph.microsoft.com/.default'])
     
+    # Make a call to the specified request_url and return the response from the Graph API
+    def get(self, request_url):
+
+        response = self.user_client.get(request_url)
+        
+        return response
 
     # Make a call to get a site using a query. Returns the json response of the API call
     def get_site(self, site_name):

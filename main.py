@@ -1,5 +1,9 @@
 import configparser, os, logging, re
+from data_to_csv import ExcelWriter
 from graph import Graph
+from outlook_parser import OutlookParser
+from pdf_extract import PDFExtractor
+from sharepoint_upload_helper import SharepointUpload
 
 
 logging.basicConfig()
@@ -17,79 +21,63 @@ def main():
     # Load environment variables from the config.cfg file
     variables = config['variables']
 
+    # Create objects from helper classes
     graph: Graph = Graph(azure_settings)
+    outlook: OutlookParser = OutlookParser(graph)
+    sharepoint: SharepointUpload = SharepointUpload(graph)
 
-    # Call the function to get a site by its name. 
-    response = graph.get_site(variables['SITE_NAME'])
+    excelWriter: ExcelWriter = ExcelWriter()
+    pdfExtractor: PDFExtractor = PDFExtractor()
 
-    json_data = response.json() if response and response.status_code == 200 else None
-    if json_data and 'value' in json_data:
-        
-        # Retrieve the site ID of the first site from the results
-        try:
-            # Loop through the result from the query and check if the name matches
-            for site in json_data['value']:
-                if site['name'] == variables['SITE_NAME']:
-                    site_id = site['id']
-        except:
-            logging.error("Something went wrong while retrieving the site ID. Make sure the site %s exists.", variables["SITE_NAME"])
-            logging.error(response.json())
-            return None
+    # Fetch all emails in Cybersecurity Certification folder
+    cybercert_folder = outlook.list_folders()
+    messages = outlook.list_inbox(cybercert_folder)
 
-    # Call the function to get all the drives of the site from above
-    response = graph.get_drive(site_id)
-    
-    json_data = response.json() if response and response.status_code == 200 else None
-    list_of_drives = json_data['value'] if json_data and 'value' in json_data else None
-    
-    try:
-        # Loop through all the drives in the site and check if the name matches
-        for drive in list_of_drives:
-            if drive['name'] == variables['DRIVE_NAME']:
-                drive_id = drive['id']
-    except:
-        logging.error("Something went wrong while retrieving the drive ID of %s.", variables['DRIVE_NAME'])
-        logging.error(response.json())
-        return None
+    # Grab drive_id using site name and drive name
+    drive_id = sharepoint.get_drive_id(variables['SITE_NAME'], variables['DRIVE_NAME'])
+    list_of_filenames = sharepoint.list_files_in_folder(drive_id, variables['DRIVE_PATH'])
 
-    # List the files in the target folder
-    response = graph.list_files(drive_id, variables['DRIVE_PATH'])
-    json_data = response.json() if response and response.status_code == 200 else None
-    list_of_files = json_data['value'] if json_data and 'value' in json_data else None
+    # Dict definition to write excel rows
+    excel_rows = []
+
+    # Parse email for "Cybersecurity Cert" regex and PDF attachment (Skip any WinZip or Encrypted Word Document)
+    for message in messages:
+        # Check that there is one attachment
+        attachments = outlook.list_attachments(message['id']).get('value')
+        if len(attachments) != 1:  # Skip email if there is more than one attachment or no attachment
+            continue
+
+        # Check single attachment is a PDF
+        file_name = attachments[0]['name']
+        if file_name[-4:] != '.pdf': # Skip email if the single attachment does not have .pdf file extension
+            continue
+
+        # Grab the PDF from the email
+        attachment_name_and_content_dict = outlook.get_attachment_content(message, attachments[0]['id'])
+
+        # Grab the First and Last from the email
+        firstName = attachment_name_and_content_dict[0].split('_')[1]
+        lastName = attachment_name_and_content_dict[0].split('_')[0]
+
+        # Upload PDF to Sharepoint Folder
+        sharepoint.upload_file(drive_id, variables['DRIVE_PATH'], attachment_name_and_content_dict[0], attachment_name_and_content_dict[1], list_of_filenames)
+
+        # Write the EID, name parsed from PDF, and Certificate Completion Date to the List to be put in excel
+        with open(attachment_name_and_content_dict[0], 'rwb') as temp_file:
+            temp_file.write(attachment_name_and_content_dict[1])
+            certificateData = pdfExtractor.getCertificateCompletionData(attachment_name_and_content_dict[0])
+
+        excel_rows.append({'Last Name': lastName, 'First Name': firstName, 'EID': message['email'].split('@')[0], 
+            'Name on Certificate': certificateData[0], 'Certificate Completion Date': certificateData[1]})
 
 
+        # Move processed email into new Outlook folder
+        # TODO: Write function to move email to new folder
 
-    # Go through each file (certificate) in the folder PATH_OF_DIRECTORY variable
-    # Convert each file to a binary stream
-    # Pass the data to the upload function, which uploads the file to the folder DRIVE_PATH variable on Sharepoint
-    # If the filename already exists, append a number to the filename ex. "John_Doe_CyberSecurity_Certificate(1).pdf"
-    for filename in os.listdir(variables['PATH_OF_DIRECTORY']):
-        f = os.path.join(variables['PATH_OF_DIRECTORY'],filename)
-        if os.path.isfile(f) and filename.endswith('.pdf'):
-            count = 1
-            i = 0
-            # Check if the filename already has a number at the end
-            regex_match = re.match("\w*\(\d*\).pdf", filename)
-            # Save the filename as a variable without the extension or count
-            tmp_filename = filename[:-7] if regex_match else filename[:-4]
-            try:
-                # Loop through all the items and check if an item with the filename already exists
-                while i in range(len(list_of_files)):
-                    # Append the count to the filename
-                    # Increment the count and start from the beginning of the loop again
-                    if list_of_files[i]['name'] == filename:
-                        logging.info("Filename already exists")
-                        filename = f"{tmp_filename}({count}).pdf"
-                        count+=1
-                        i = 0
-                    else:
-                        i+=1
-            except Exception as e:
-                logging.error("Something went wrong while retrieving the files in the folder.")
-                print(e)
-            with open(f, mode='rb') as file: # Read binary
-                fileContent = file.read() # Change to write content directly instead of storing in variable
-            response = graph.upload_file(drive_id, variables['DRIVE_PATH'], filename, fileContent)
+    # Write excel file
+    excelWriter.writeToExcel(excel_rows, variables['EXCEL_FILENAME'], variables['EXCEL_WRITE_PATH'])
+
+    # Notify user of any emails that could not be parsed
 
 
 main()
