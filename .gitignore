@@ -2,3 +2,8 @@
 conf.cfg
 AppOnlyCertificate.cer
 AppOnlyCertificate.pfx
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
