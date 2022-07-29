@@ -101,7 +101,7 @@ class Graph:
 
     def get_inbox(self, folder_id: str):
         endpoint = f'/me/mailFolders/{folder_id}/messages'
-        select = 'from,isRead,receivedDateTime,subject,hasAttachments,id'
+        select = 'from,isRead,receivedDateTime,subject,hasAttachments,id,sender'
         top = 25
         order_by = 'receivedDateTime DESC'
         request_url = f'{endpoint}?$select={select}&$top={top}&$orderBy={order_by}'

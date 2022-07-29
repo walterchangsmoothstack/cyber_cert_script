@@ -31,7 +31,9 @@ def main():
 
     # Fetch all emails in Cybersecurity Certification folder
     cybercert_folder = outlook.list_folders()
-    messages = outlook.list_inbox(cybercert_folder)
+    cyber_id = outlook.get_folder_id('cybersecurity',cybercert_folder)
+
+    messages = outlook.list_inbox(cyber_id)
 
     # Grab drive_id using site name and drive name
     drive_id = sharepoint.get_drive_id(variables['SITE_NAME'], variables['DRIVE_NAME'])

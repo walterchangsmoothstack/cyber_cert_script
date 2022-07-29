@@ -25,7 +25,7 @@ class OutlookParser:
 
         return folder_creation.json()
 
-    def parse_name(sender: str) -> dict:
+    def parse_name(self, sender: str) -> dict:
         user = {}
 
         # Last, First format
@@ -52,6 +52,8 @@ class OutlookParser:
         return user
 
     def list_inbox(self, folder_id: str) -> list:
+        print(folder_id)
+        
         message_page = self.graph.get_inbox(folder_id).get('value')
         messages_list = []
 
