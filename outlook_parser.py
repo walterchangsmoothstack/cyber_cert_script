@@ -52,7 +52,6 @@ class OutlookParser:
         return user
 
     def list_inbox(self, folder_id: str) -> list:
-        print(folder_id)
         
         message_page = self.graph.get_inbox(folder_id).get('value')
         messages_list = []

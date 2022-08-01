@@ -44,34 +44,45 @@ def main():
 
     # Parse email for "Cybersecurity Cert" regex and PDF attachment (Skip any WinZip or Encrypted Word Document)
     for message in messages:
+        print(message['id'])
+
+        #NOTE CHANGED MICHAEL'S CODE HERE. list_attachments seems to return a list
         # Check that there is one attachment
-        attachments = outlook.list_attachments(message['id']).get('value')
+        attachments = outlook.list_attachments(message['id']) #.get('value')
+
         if len(attachments) != 1:  # Skip email if there is more than one attachment or no attachment
             continue
 
         # Check single attachment is a PDF
         file_name = attachments[0]['name']
+        print(attachments)
         if file_name[-4:] != '.pdf': # Skip email if the single attachment does not have .pdf file extension
             continue
 
         # Grab the PDF from the email
         attachment_name_and_content_dict = outlook.get_attachment_content(message, attachments[0]['id'])
 
+        #NOTE CHANGED MICHAEL'S CODE HERE. changed [0] -> ['attachmentName]
         # Grab the First and Last from the email
-        firstName = attachment_name_and_content_dict[0].split('_')[1]
-        lastName = attachment_name_and_content_dict[0].split('_')[0]
+        firstName = attachment_name_and_content_dict['attachmentName'].split('_')[1]
+        lastName = attachment_name_and_content_dict['attachmentName'].split('_')[0]
 
+        #NOTE CHANGED MICHAEL'S CODE HERE. changed [1] -> ['attachmentContent']
         # Upload PDF to Sharepoint Folder
-        sharepoint.upload_file(drive_id, variables['DRIVE_PATH'], attachment_name_and_content_dict[0], attachment_name_and_content_dict[1], list_of_filenames)
+        sharepoint.upload_file(drive_id, variables['DRIVE_PATH'], attachment_name_and_content_dict['attachmentName'], 
+            attachment_name_and_content_dict['attachmentContent'], list_of_filenames)
 
         # Write the EID, name parsed from PDF, and Certificate Completion Date to the List to be put in excel
-        with open(attachment_name_and_content_dict[0], 'rwb') as temp_file:
-            temp_file.write(attachment_name_and_content_dict[1])
-            certificateData = pdfExtractor.getCertificateCompletionData(attachment_name_and_content_dict[0])
+        with open(attachment_name_and_content_dict['attachmentName'], 'wb') as temp_file:
+            temp_file.write(attachment_name_and_content_dict['attachmentContent'])
+        
+        certificateData = pdfExtractor.getCertificateCompletionData(attachment_name_and_content_dict['attachmentName'])
 
+        # Remove the temporary file
+        os.remove(attachment_name_and_content_dict['attachmentName'])
         excel_rows.append({'Last Name': lastName, 'First Name': firstName, 'EID': message['email'].split('@')[0], 
             'Name on Certificate': certificateData[0], 'Certificate Completion Date': certificateData[1]})
-
+        print(excel_rows)
 
         # Move processed email into new Outlook folder
         # TODO: Write function to move email to new folder

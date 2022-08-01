@@ -4,8 +4,8 @@ import os
 
 class ExcelWriter:
     
-    def writeToExcel(self, data, filename, path = ''):
+    def writeToExcel(self, data, filename, path):
         
-        df_with_new_data = pd.DataFrame.from_dict(data, index=False)
+        df_with_new_data = pd.DataFrame.from_dict(data)
 
         df_with_new_data.to_excel(os.path.join(path, filename))
