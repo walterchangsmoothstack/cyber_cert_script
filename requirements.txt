@@ -3,3 +3,4 @@ msgraph-core==0.2.2
 pandas==1.4.3
 openpyxl==3.0.10
 PyPDF2==2.5.0
+platformdirs==2.5.2

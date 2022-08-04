@@ -1,8 +1,11 @@
 # importing required modules
 import PyPDF2 # Written using PyPDF2 2.5.0, if updated or using a different version, then text parse may be in different order or contain different text
-import os
+import os, logging
 from cgitb import text
 from operator import contains
+
+logging.basicConfig()
+logging.getLogger().setLevel(logging.ERROR)
 
 class PDFExtractor:
     # Returns a list of strings that are extracted from the PDF using PyPDF2
@@ -58,8 +61,8 @@ class PDFExtractor:
     def extractCertificateDataFromDirectory(self, directoryname):
         
         for filename in os.listdir(directoryname):
-            if not '.pdf' in filename:
-                print('******\n{} is not a PDF, skipping for text extraction.'.format(filename))
+            if not filename.endswith('.pdf'):
+                logging.error('******\n{} is not a PDF, skipping for text extraction.'.format(filename))
                 continue
 
             print('******\nPDF Text from {}'.format(filename))

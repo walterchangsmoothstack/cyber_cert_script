@@ -10,7 +10,7 @@ logging.basicConfig()
 logging.getLogger().setLevel(logging.ERROR)
 
 
-def main():
+if __name__ == '__main__':
     print('Parsing Cybersecurity Certificates\n')
 
     # Load settings
@@ -92,5 +92,3 @@ def main():
 
     # Notify user of any emails that could not be parsed
 
-
-main()
