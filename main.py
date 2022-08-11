@@ -69,8 +69,11 @@ if __name__ == '__main__':
 
         #NOTE CHANGED MICHAEL'S CODE HERE. changed [1] -> ['attachmentContent']
         # Upload PDF to Sharepoint Folder
-        sharepoint.upload_file(drive_id, variables['DRIVE_PATH'], attachment_name_and_content_dict['attachmentName'], 
-            attachment_name_and_content_dict['attachmentContent'], list_of_filenames)
+        filename = sharepoint.upload_file(drive_id, variables['DRIVE_PATH'], attachment_name_and_content_dict['attachmentName'], 
+            attachment_name_and_content_dict['attachmentContent'], list_of_filenames, '.pdf')
+
+        # Add the uploaded file to the list of files in the folder
+        list_of_filenames.append(filename)
 
         # Write the EID, name parsed from PDF, and Certificate Completion Date to the List to be put in excel
         with open(attachment_name_and_content_dict['attachmentName'], 'wb') as temp_file:
@@ -82,13 +85,16 @@ if __name__ == '__main__':
         os.remove(attachment_name_and_content_dict['attachmentName'])
         excel_rows.append({'Last Name': lastName, 'First Name': firstName, 'EID': message['email'].split('@')[0], 
             'Name on Certificate': certificateData[0], 'Certificate Completion Date': certificateData[1]})
-        print(excel_rows)
 
         # Move processed email into new Outlook folder
         # TODO: Write function to move email to new folder
 
     # Write excel file
     excelWriter.writeToExcel(excel_rows, variables['EXCEL_FILENAME'], variables['EXCEL_WRITE_PATH'])
+    with open(os.path.join(variables['EXCEL_WRITE_PATH'], variables['EXCEL_FILENAME']), 'rb') as temp_file:
+        filename = sharepoint.upload_file(drive_id, variables['DRIVE_PATH'], variables['EXCEL_FILENAME'], 
+                temp_file.read(), list_of_filenames, '.xlsx')
+    os.remove(os.path.join(variables['EXCEL_WRITE_PATH'], variables['EXCEL_FILENAME']))
 
     # Notify user of any emails that could not be parsed
 

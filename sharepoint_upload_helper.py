@@ -59,24 +59,24 @@ class SharepointUpload:
     # Takes a file and uploads the content to a Sharepoint folder after verifying that a file of that
     # name does not already exist. If it does, then append a count to the filename before uploading.
     # Filname should have the .pdf extension
-    def upload_file(self, drive_id, folder_path, filename, fileContent, list_of_filenames):
+    def upload_file(self, drive_id, folder_path, filename, fileContent, list_of_filenames, extension):
         i = 0
         count = 1
         # Save just the filename without the extension or count for use later to handle double/triple digit counts
         tmp_filename = filename[:-4]
         # Put the count in between the filename and extension
-        filename = f'{tmp_filename}({count}).pdf'
+        filename = f'{tmp_filename}({count}){extension}'
         while i in range(0, len(list_of_filenames)):
             if list_of_filenames[i] == filename:
                 logging.info(f"File already exists. Appending ({count}) to the filename")
                 count += 1
-                filename = f'{tmp_filename}({count}).pdf'
+                filename = f'{tmp_filename}({count}){extension}'
                 # Resetting count to 0
                 i = 0
             else:
                 i +=1
-        response = self.graph.upload_file(drive_id, folder_path, filename, fileContent)
-        return response
+        self.graph.upload_file(drive_id, folder_path, filename, fileContent)
+        return filename
     
 
 
