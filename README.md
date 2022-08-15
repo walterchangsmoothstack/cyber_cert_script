@@ -5,7 +5,7 @@ Script to download cyber security certificate PDFs from Outlook and upload them 
 
 ## Installation instructions
 1. Install Python 3 for the respective operating system and architecture from [here](https://www.python.org/downloads/)
-2. Download the source code from Github [here](https://github.com/walterchangsmoothstack/cyber_cert_script.git) and extract the zip file to the desired location
+2. Download the source code from Github [here](https://github.com/walterchangsmoothstack/cyber_cert_script/archive/refs/heads/main.zip) and extract the zip file to the desired location
 3. Create a file named config.cfg with the following content:
 ```
 [azure]
